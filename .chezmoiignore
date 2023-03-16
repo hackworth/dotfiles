@@ -8,3 +8,4 @@ AppData/Local/nvim/init.vim
 AppData/Local/nvim/plugin/init.lua
 AppData/Local/nvim/plugin/cmp.lua
 {{ end }}
+README.md
