@@ -4,7 +4,7 @@ Invoke-Expression (& {
 })
 
 # Configuring Oh-my-posh Terminal
-oh-my-posh init pwsh --config "$(scoop prefix oh-my-posh)\themes\amro.omp.json" | Invoke-Expression
+oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/spaceship.omp.json" | Invoke-Expression
 
 # Importing Terminal-Icons Module
 Import-Module Terminal-Icons
