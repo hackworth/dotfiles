@@ -1,0 +1,10 @@
+{{ if ne .chezmoi.os "darwin" }}
+.config/nvim/init.vim
+.config/nvim/plugin/init.lua
+.config/nvim/plugin/cmp.lua
+{{ end }}
+{{ if ne .chezmoi.os "windows" }}
+AppData/Local/nvim/init.vim
+AppData/Local/nvim/plugin/init.lua
+AppData/Local/nvim/plugin/cmp.lua
+{{ end }}
