@@ -1,4 +1,4 @@
-{{ if ne .chezmoi.os "darwin" }}
+{{ if (and (ne .chezmoi.os "linux") (ne .chezmoi.os "darwin")) }}
 .config/nvim/init.vim
 .config/nvim/plugin/init.lua
 .config/nvim/plugin/cmp.lua
