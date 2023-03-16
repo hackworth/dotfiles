@@ -154,6 +154,8 @@ Plug 'AckslD/nvim-neoclip.lua'
 Plug 'pprovost/vim-ps1'
 Plug 'hashivim/vim-terraform'
 
+Plug 'github/copilot.vim'
+
 call plug#end()
 
 "nnoremap <C-p> :Files<CR>
