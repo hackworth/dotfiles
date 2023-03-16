@@ -24,3 +24,5 @@ Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
 Set-Alias vim nvim
 Set-Alias g git
 Set-Alias grep Find-String
+
+$env:EDITOR = "nvim"
