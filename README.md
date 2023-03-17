@@ -4,3 +4,5 @@
 https://scriptingchris.tech/posts/how-i-setup-my-powershell-development-environment/
 
 `chezmoi update && chezmoi apply --verbose`
+
+`scoop install neovim fzf curl sudo jq 7zip coreutils grep sed less`
