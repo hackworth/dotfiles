@@ -5,6 +5,7 @@
 {{ end }}
 {{ if ne .chezmoi.os "windows" }}
 Documents/PowerShell/Microsoft.PowerShell_profile.ps1
+Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1
 AppData/Local/nvim/init.vim
 AppData/Local/nvim/plugin/init.lua
 AppData/Local/nvim/plugin/cmp.lua
