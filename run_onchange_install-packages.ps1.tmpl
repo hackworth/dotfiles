@@ -1,3 +1,7 @@
 {{ if eq .chezmoi.os "windows" -}}
+Install-Module Z -Scope CurrentUser -Force -SkipPublisherCheck
+Install-Module Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
+Install-Module PSFzf -Scope CurrentUser -Force -SkipPublisherCheck
+Install-Module PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
 scoop install neovim fzf curl sudo jq 7zip coreutils grep sed less fd
 {{ end -}}
