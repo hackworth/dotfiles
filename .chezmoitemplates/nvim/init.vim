@@ -154,7 +154,7 @@ Plug 'AckslD/nvim-neoclip.lua'
 Plug 'pprovost/vim-ps1'
 Plug 'hashivim/vim-terraform'
 
-Plug 'github/copilot.vim'
+Plug 'mbbill/undotree'
 
 call plug#end()
 
@@ -235,3 +235,4 @@ nnoremap gr <cmd>lua require('telescope.builtin').lsp_references()<cr>
 nnoremap <C-p> <cmd>lua require('telescope.builtin').find_files()<cr>
 nnoremap <leader>fc :Telescope colorscheme<cr>
 nnoremap <leader>ws :ToggleWhitespace<cr>
+nnoremap <leader>u :UndotreeToggle<CR>
