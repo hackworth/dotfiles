@@ -1,4 +1,9 @@
-require("nvim-lsp-installer").setup {}
+local language_servers = { "powershell_es", "terraformls", "tsserver", "lua_ls" }
+
+require("mason").setup()
+require("mason-lspconfig").setup {
+    ensure_installed = language_servers
+}
 
 local cmp = require'cmp'
 cmp.setup({
@@ -62,11 +67,9 @@ cmp.setup.cmdline(':', {
     })
 })
 
--- Setup lspconfig.
+-- Setup lspconfig
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
--- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
-local servers = {'sourcekit', 'powershell_es', 'tsserver'}
-for _, lsp in ipairs(servers) do
+for _, lsp in ipairs(language_servers) do
     require('lspconfig')[lsp].setup {
         capabilities = capabilities
     }

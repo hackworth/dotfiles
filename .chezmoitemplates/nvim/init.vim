@@ -37,9 +37,6 @@ set autoread
 " like <leader>w saves the current file
 let mapleader = ","
 
-" Fast saving
-nmap <leader>w :w!<cr>
-
 " Ignore case when searching
 set ignorecase
 
@@ -92,8 +89,9 @@ set wrap "Wrap lines
 " Always show the status line
 set laststatus=2
 
+set nowrap
+
 " turn off search highlight
-nnoremap <leader><space> :nohlsearch<CR>
 
 let g:polyglot_disabled = ['powershell', 'hashivim/vim-terraform']
 
@@ -104,20 +102,9 @@ Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-unimpaired'
 "Plug 'easymotion/vim-easymotion'
 Plug 'ntpeters/vim-better-whitespace'
-
-Plug 'lifepillar/vim-solarized8'
-Plug 'overcache/NeoSolarized'
-Plug 'sainnhe/sonokai'
-Plug 'sainnhe/everforest'
-Plug 'folke/tokyonight.nvim', { 'branch': 'main' }
 Plug 'morhetz/gruvbox'
 
-Plug 'catppuccin/nvim', {'as': 'catppuccin'}
-Plug 'dracula/vim', { 'as': 'dracula' }
-Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
-Plug 'junegunn/fzf.vim'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-"Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'tpope/vim-fugitive'
 Plug 'vim-airline/vim-airline'
 Plug 'tpope/vim-surround'
@@ -127,7 +114,8 @@ Plug 'junegunn/vim-easy-align'
 Plug 'nanotee/zoxide.vim'
 Plug 'sbdchd/neoformat'
 
-Plug 'williamboman/nvim-lsp-installer'
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
 Plug 'neovim/nvim-lspconfig'
 
 Plug 'hrsh7th/cmp-nvim-lsp'
@@ -158,26 +146,9 @@ Plug 'mbbill/undotree'
 
 call plug#end()
 
-"nnoremap <C-p> :Files<CR>
-nnoremap <C-n> :NERDTreeToggle<CR>
-map <leader>/ <plug>NERDCommenterToggle<CR>
-"nmap <leader>gd <Plug>(coc-definition)
-"nmap <leader>gr <Plug>(coc-references)
-vnoremap J :m '>+1<CR>gv=gv
-vnoremap K :m '<-2<CR>gv=gv
-
-let g:sonokai_style = 'maia'
-let g:sonokai_better_performance = 1
-"colorscheme gruvbox
 colorscheme gruvbox
 
 set background=dark
-let g:everforest_background = 'hard'
-"colorscheme everforest
-"colorscheme tokyonight
-"colorscheme gruvbox8
-
-
 let g:airline#extensions#tabline#enabled = 1
 
 " use <tab> for trigger completion and navigate to the next complete item
@@ -186,18 +157,10 @@ function! s:check_back_space() abort
   return !col || getline('.')[col - 1]  =~ '\s'
 endfunction
 
-"inoremap <silent><expr> <Tab>
-      "\ pumvisible() ? "\<C-n>" :
-      "\ <SID>check_back_space() ? "\<Tab>" :
-      "\ coc#refresh()
-
-" Go to previous line on file open
 if has("autocmd")
   au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
     \| exe "normal! g'\"zz" | endif
 endif
-
-nnoremap <Leader>2 :set number! relativenumber!<CR>:call ToggleSignColumn()<CR>
 
 " Toggle signcolumn. Works only on vim>=8.0 or NeoVim
 function! ToggleSignColumn()
@@ -210,12 +173,6 @@ function! ToggleSignColumn()
     endif
 endfunction
 
-" Start interactive EasyAlign in visual mode (e.g. vipga)
-xmap ga <Plug>(EasyAlign)
-
-" Start interactive EasyAlign for a motion/text object (e.g. gaip)
-nmap ga <Plug>(EasyAlign)
-
 " System clipboard on macOS
 set clipboard=unnamed
 
@@ -224,15 +181,3 @@ set clipboard=unnamed
 let g:rooter_cd_cmd = 'lcd' " change root per buffer
 
 set completeopt=menu,menuone,noselect
-
-set pumheight=30 " Max number of autocomplete items
-
-nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files()<cr>
-nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
-nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
-nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
-nnoremap gr <cmd>lua require('telescope.builtin').lsp_references()<cr>
-nnoremap <C-p> <cmd>lua require('telescope.builtin').find_files()<cr>
-nnoremap <leader>fc :Telescope colorscheme<cr>
-nnoremap <leader>ws :ToggleWhitespace<cr>
-nnoremap <leader>u :UndotreeToggle<CR>
