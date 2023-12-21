@@ -43,3 +43,6 @@ vim.keymap.set('n', '<leader>gr', "<cmd>lua require'telescope.builtin'.lsp_refer
 vim.keymap.set('n', '<leader>fc', ':Telescope colorscheme<cr>', {})
 vim.keymap.set('n', '<leader>ws', ':ToggleWhitespace<cr>', {})
 --nnoremap <leader>u :UndotreeToggle<CR>
+
+vim.keymap.set("n", "<leader>xw", function() require("trouble").toggle("workspace_diagnostics") end)
+

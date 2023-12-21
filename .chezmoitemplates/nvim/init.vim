@@ -144,6 +144,8 @@ Plug 'hashivim/vim-terraform'
 
 Plug 'mbbill/undotree'
 
+Plug 'folke/trouble.nvim'
+
 call plug#end()
 
 colorscheme gruvbox
