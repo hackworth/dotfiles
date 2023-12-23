@@ -146,6 +146,8 @@ Plug 'mbbill/undotree'
 
 Plug 'folke/trouble.nvim'
 
+Plug 'nvim-tree/nvim-web-devicons'
+
 call plug#end()
 
 colorscheme gruvbox
