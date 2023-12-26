@@ -103,6 +103,7 @@ Plug 'tpope/vim-unimpaired'
 "Plug 'easymotion/vim-easymotion'
 Plug 'ntpeters/vim-better-whitespace'
 Plug 'morhetz/gruvbox'
+Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'tpope/vim-fugitive'
@@ -150,7 +151,8 @@ Plug 'nvim-tree/nvim-web-devicons'
 
 call plug#end()
 
-colorscheme gruvbox
+"colorscheme gruvbox
+colorscheme catppuccin-macchiato
 
 set background=dark
 let g:airline#extensions#tabline#enabled = 1
