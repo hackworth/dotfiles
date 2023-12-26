@@ -148,6 +148,7 @@ Plug 'mbbill/undotree'
 Plug 'folke/trouble.nvim'
 
 Plug 'nvim-tree/nvim-web-devicons'
+Plug 'rafamadriz/friendly-snippets'
 
 call plug#end()
 
