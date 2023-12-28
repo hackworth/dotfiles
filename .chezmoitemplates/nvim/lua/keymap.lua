@@ -24,11 +24,9 @@ vim.keymap.set('n', '<leader>ca', ':lua vim.lsp.buf.code_action()<cr>', {})
 vim.keymap.set('n', '<leader>rn', ':lua vim.lsp.buf.rename()<cr>', {})
 
 
-vim.keymap.set('x', 'ga', ':EasyAlign<cr>', {})
-vim.keymap.set('n', 'ga', ':EasyAlign<cr>', {})
+vim.keymap.set({'n', 'x'}, 'ga', ':EasyAlign<cr>', {})
 vim.keymap.set('n', '<c-n>', ':NERDTreeToggle<cr>', {})
-vim.keymap.set('n', '<leader>/', '<plug>NERDCommenterToggle<cr>', {})
-vim.keymap.set('x', '<leader>/', '<plug>NERDCommenterToggle<cr>', {})
+vim.keymap.set({'n', 'x'}, '<leader>/', '<plug>NERDCommenterToggle<cr>', {})
 
 --vnoremap J :m '>+1<CR>gv=gv
 --vnoremap K :m '<-2<CR>gv=gv
