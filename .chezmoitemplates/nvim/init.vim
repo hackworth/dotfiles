@@ -153,7 +153,7 @@ Plug 'rafamadriz/friendly-snippets'
 call plug#end()
 
 "colorscheme gruvbox
-colorscheme catppuccin-macchiato
+colorscheme catppuccin-frappe
 
 set background=dark
 let g:airline#extensions#tabline#enabled = 1
