@@ -134,7 +134,7 @@ Plug 'jvgrootveld/telescope-zoxide'
 Plug 'cljoly/telescope-repo.nvim'
 
 Plug 'nvim-telescope/telescope-fzy-native.nvim'
-Plug 'phaazon/hop.nvim'
+Plug 'smoka7/hop.nvim'
 
 Plug 'sheerun/vim-polyglot'
 Plug 'airblade/vim-rooter'
