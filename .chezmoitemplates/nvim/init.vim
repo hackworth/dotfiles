@@ -125,8 +125,14 @@ Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
 
-Plug 'hrsh7th/cmp-vsnip'
-Plug 'hrsh7th/vim-vsnip'
+
+"Plug 'hrsh7th/vim-vsnip'
+"Plug 'hrsh7th/vim-vsnip-integ'
+"Plug 'hrsh7th/cmp-vsnip'
+
+Plug 'rafamadriz/friendly-snippets'
+Plug 'L3MON4D3/LuaSnip', {'tag': 'v2.*', 'do': 'make install_jsregexp'}
+Plug 'saadparwaiz1/cmp_luasnip'
 
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim'
@@ -148,7 +154,6 @@ Plug 'mbbill/undotree'
 Plug 'folke/trouble.nvim'
 
 Plug 'nvim-tree/nvim-web-devicons'
-Plug 'rafamadriz/friendly-snippets'
 
 call plug#end()
 
