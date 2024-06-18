@@ -1,4 +1,4 @@
-local language_servers = { "powershell_es", "terraformls", "tsserver", "lua_ls", "rust_analyzer" }
+local language_servers = { "gopls", "powershell_es", "terraformls", "tsserver", "lua_ls", "rust_analyzer" }
 
 require("mason").setup()
 require("mason-lspconfig").setup {
