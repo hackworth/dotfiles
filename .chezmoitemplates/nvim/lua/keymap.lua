@@ -42,6 +42,6 @@ vim.keymap.set('n', '<leader>fc', ':Telescope colorscheme<cr>', {})
 vim.keymap.set('n', '<leader>ws', ':ToggleWhitespace<cr>', {})
 --nnoremap <leader>u :UndotreeToggle<CR>
 
-vim.keymap.set("n", "<leader>xw", function() require("trouble").toggle("workspace_diagnostics") end)
+vim.keymap.set("n", "<leader>xx", function() require("trouble").toggle("diagnostics") end)
 vim.keymap.set({"i", "s"}, "<C-L>", function() require("luasnip").jump( 1) end, {silent = true})
 vim.keymap.set({"i", "s"}, "<C-J>", function() require("luasnip").jump(-1) end, {silent = true})
