@@ -15,3 +15,8 @@ require'nvim-treesitter.configs'.setup {
     additional_vim_regex_highlighting = false,
   }
 }
+
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
+require("nvim-tree").setup()

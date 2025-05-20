@@ -25,7 +25,7 @@ vim.keymap.set('n', '<leader>rn', ':lua vim.lsp.buf.rename()<cr>', {})
 
 
 vim.keymap.set({'n', 'x'}, 'ga', ':EasyAlign<cr>', {})
-vim.keymap.set('n', '<c-n>', ':NERDTreeToggle<cr>', {})
+vim.keymap.set('n', '<c-n>', ':NvimTreeToggle<cr>', {})
 vim.keymap.set({'n', 'x'}, '<leader>/', '<plug>NERDCommenterToggle<cr>', {})
 
 --vnoremap J :m '>+1<CR>gv=gv

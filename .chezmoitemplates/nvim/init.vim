@@ -97,7 +97,7 @@ let g:polyglot_disabled = ['powershell', 'hashivim/vim-terraform']
 
 call plug#begin('~/.vim/plugged')
 
-Plug 'scrooloose/nerdtree'
+"Plug 'scrooloose/nerdtree'
 Plug 'scrooloose/nerdcommenter'
 Plug 'tpope/vim-unimpaired'
 "Plug 'easymotion/vim-easymotion'
@@ -149,6 +149,8 @@ Plug 'mbbill/undotree'
 Plug 'folke/trouble.nvim'
 
 Plug 'nvim-tree/nvim-web-devicons'
+Plug 'nvim-tree/nvim-tree.lua'
+
 
 call plug#end()
 
