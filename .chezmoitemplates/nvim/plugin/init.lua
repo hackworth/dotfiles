@@ -10,6 +10,8 @@ require("nvim-autopairs").setup {}
 
 require('keymap')
 
+require('lualine').setup()
+
 require'nvim-treesitter.configs'.setup {
   highlight = {
     enable = true,

@@ -107,7 +107,6 @@ Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'tpope/vim-fugitive'
-Plug 'vim-airline/vim-airline'
 Plug 'tpope/vim-surround'
 Plug 'mhinz/vim-signify'
 Plug 'tpope/vim-eunuch'
@@ -152,13 +151,14 @@ Plug 'nvim-tree/nvim-web-devicons'
 Plug 'nvim-tree/nvim-tree.lua'
 Plug 'windwp/nvim-autopairs'
 
+Plug 'nvim-lualine/lualine.nvim'
+
 call plug#end()
 
 "colorscheme gruvbox
 colorscheme catppuccin-frappe
 
 set background=dark
-let g:airline#extensions#tabline#enabled = 1
 
 " use <tab> for trigger completion and navigate to the next complete item
 function! s:check_back_space() abort
