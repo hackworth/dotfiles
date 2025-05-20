@@ -150,7 +150,7 @@ Plug 'folke/trouble.nvim'
 
 Plug 'nvim-tree/nvim-web-devicons'
 Plug 'nvim-tree/nvim-tree.lua'
-
+Plug 'windwp/nvim-autopairs'
 
 call plug#end()
 
