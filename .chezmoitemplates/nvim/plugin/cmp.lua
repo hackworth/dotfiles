@@ -64,22 +64,22 @@ cmp.setup.cmdline(':', {
 })
 
 -- Setup lspconfig
-local capabilities = require('cmp_nvim_lsp').default_capabilities()
-for _, lsp in ipairs(language_servers) do
-  require('lspconfig')[lsp].setup {
-    capabilities = capabilities
-  }
-end
+--local capabilities = require('cmp_nvim_lsp').default_capabilities()
+--for _, lsp in ipairs(language_servers) do
+  --require('lspconfig')[lsp].setup {
+    --capabilities = capabilities
+  --}
+--end
 
 require("luasnip.loaders.from_vscode").lazy_load()
 
-require("lspconfig").powershell_es.setup({
-  bundle_path       = vim.fn.stdpath('data') .. '/mason/packages/powershell-editor-services',
-  shell             = 'pwsh',          -- 'powershell.exe' on Windows if you prefer
-  filetypes         = { 'ps1', 'psm1', 'psd1' },
-  init_options      = { enableProfileLoading = false }, -- avoids slow start-ups
-  settings          = { powershell = { codeFormatting = { Preset = 'OTBS' } } },
-})
+--require("lspconfig").powershell_es.setup({
+  --bundle_path       = vim.fn.stdpath('data') .. '/mason/packages/powershell-editor-services',
+  --shell             = 'pwsh',          -- 'powershell.exe' on Windows if you prefer
+  --filetypes         = { 'ps1', 'psm1', 'psd1' },
+  --init_options      = { enableProfileLoading = false }, -- avoids slow start-ups
+  --settings          = { powershell = { codeFormatting = { Preset = 'OTBS' } } },
+--})
 
 cmp.setup({
   mapping = {
