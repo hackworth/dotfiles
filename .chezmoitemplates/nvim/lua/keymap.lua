@@ -25,7 +25,7 @@ vim.keymap.set('n', '<leader>rn', ':lua vim.lsp.buf.rename()<cr>', {})
 
 
 vim.keymap.set({'n', 'x'}, 'ga', ':EasyAlign<cr>', {})
-vim.keymap.set('n', '<c-n>', ':NERDTreeToggle<cr>', {})
+vim.keymap.set('n', '<c-n>', ':NvimTreeToggle<cr>', {})
 vim.keymap.set({'n', 'x'}, '<leader>/', '<plug>NERDCommenterToggle<cr>', {})
 
 --vnoremap J :m '>+1<CR>gv=gv
@@ -40,8 +40,8 @@ vim.keymap.set('n', '<leader>fh', "<cmd>lua require'telescope.builtin'.help_tags
 vim.keymap.set('n', '<leader>gr', "<cmd>lua require'telescope.builtin'.lsp_references()<cr>", {})
 vim.keymap.set('n', '<leader>fc', ':Telescope colorscheme<cr>', {})
 vim.keymap.set('n', '<leader>ws', ':ToggleWhitespace<cr>', {})
---nnoremap <leader>u :UndotreeToggle<CR>
+vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 
-vim.keymap.set("n", "<leader>xw", function() require("trouble").toggle("workspace_diagnostics") end)
+vim.keymap.set("n", "<leader>xx", function() require("trouble").toggle("diagnostics") end)
 vim.keymap.set({"i", "s"}, "<C-L>", function() require("luasnip").jump( 1) end, {silent = true})
 vim.keymap.set({"i", "s"}, "<C-J>", function() require("luasnip").jump(-1) end, {silent = true})
