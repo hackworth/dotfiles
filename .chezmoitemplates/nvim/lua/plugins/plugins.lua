@@ -106,7 +106,6 @@ return {
   {
     "yetone/avante.nvim",
     event = "VeryLazy",
-    dependencies = { "nvim-lspconfig" },
     version = false, -- Never set this value to "*"! Never!
     opts = {
       provider = "claude",
@@ -300,59 +299,17 @@ return {
       -- Expose capabilities for lspconfig                                      |
       --------------------------------------------------------------------------+
 
-      local function get_pses_paths()
-        -- ❶ Try the official Mason API (works on every Mason v1.x and most v2.x nightlies)
-        if mason_ok and mr.is_installed("powershell-editor-services") then
-          local pkg = mr.get_package("powershell-editor-services")
-          if pkg.get_install_path then       -- Mason ≤ v1.10
-            return pkg:get_install_path()
-          end
-        end
-
-        -- ❷ Fallback: build the path ourselves
-        return vim.fs.joinpath(
-          vim.fn.stdpath("data"),            -- e.g. ~/.local/share/nvim
-          "mason",
-          "packages",
-          "powershell-editor-services"
-        )
-      end
-
-      local pses_root   = get_pses_paths()
-      local bundle_dir  = vim.fs.joinpath(pses_root, "PowerShellEditorServices")
-      local start_ps1   = vim.fs.joinpath(bundle_dir, "Start-EditorServices.ps1")
-
-      -- pick the shell that exists
-      local shell = vim.fn.executable("pwsh") == 1 and "pwsh" or "powershell"
-
-
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
       require('lspconfig')['powershell_es'].setup {
         capabilities = capabilities,
-        -- cmd = {
-        --   shell,
-        --   "-NoLogo",
-        --   "-NoProfile",
-        --   "-Command",
-        --   -- The string is executed *inside* PowerShell, so we can stay POSIX-ish outside.
-        --   table.concat({
-        --     "&",
-        --     "'" .. start_ps1 .. "'",                   -- script
-        --     "-BundledModulesPath", "'" .. bundle_dir .. "'",
-        --     "-SessionDetailsPath",  "'$null'",
-        --     "-FeatureFlags",        "@()",
-        --     "-LogLevel",            "'Normal'",
-        --     "-HostName",            "'nvim'",
-        --     "-HostProfileId",       "'0'",
-        --     "-HostVersion",         "'1.0.0'",
-        --     "-Stdio"
-        --   }, " ")
-        -- }
       }
       require('lspconfig')['terraformls'].setup {
         capabilities = capabilities
       }
       require('lspconfig')['rust_analyzer'].setup {
+        capabilities = capabilities
+      }
+      require('lspconfig')['gopls'].setup {
         capabilities = capabilities
       }
 
