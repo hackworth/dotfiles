@@ -293,7 +293,17 @@ return {
       --------------------------------------------------------------------------+
       -- Expose capabilities for lspconfig                                      |
       --------------------------------------------------------------------------+
-      _G._cmp_capabilities = require("cmp_nvim_lsp").default_capabilities()
+      local capabilities = require('cmp_nvim_lsp').default_capabilities()
+      require('lspconfig')['powershell_es'].setup {
+        capabilities = capabilities
+      }
+      require('lspconfig')['terraformls'].setup {
+        capabilities = capabilities
+      }
+      require('lspconfig')['rust_analyzer'].setup {
+        capabilities = capabilities
+      }
+
     end,
   },
   {
