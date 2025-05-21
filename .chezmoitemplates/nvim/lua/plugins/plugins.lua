@@ -106,29 +106,35 @@ return {
   {
     "yetone/avante.nvim",
     event = "VeryLazy",
+    dependencies = { "nvim-lspconfig" },
     version = false, -- Never set this value to "*"! Never!
     opts = {
-      -- add any opts here
-      -- for example
-      provider = "openai",
-      openai = {
-        endpoint = "https://api.openai.com/v1",
-        model = "gpt-4o", -- your desired model (or use gpt-4o, etc.)
-        timeout = 30000, -- Timeout in milliseconds, increase this for reasoning models
-        temperature = 0,
-        max_completion_tokens = 8192, -- Increase this to include reasoning tokens (for reasoning models)
-        --reasoning_effort = "medium", -- low|medium|high, only used for reasoning models
-      },
+      provider = "claude",
     },
     -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
     -- build = "make",
-    build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false", -- for windows
+    -- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false", -- for windows
+    build = (function()
+      local uname = vim.loop.os_uname().sysname
+      if uname == "Windows_NT" then
+        return "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+      else
+        return "make"
+      end
+    end)(),
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
       "stevearc/dressing.nvim",
       "nvim-lua/plenary.nvim",
       "MunifTanjim/nui.nvim",
     }
+  },
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    opts = {
+      file_types = { "markdown", "Avante" },
+    },
+    ft = { "markdown", "Avante" },
   },
   {
     "echasnovski/mini.nvim",
@@ -236,11 +242,11 @@ return {
         },
 
         mapping = cmp.mapping.preset.insert({
-          ["<C-b>"]   = cmp.mapping.scroll_docs(-4),
-          ["<C-f>"]   = cmp.mapping.scroll_docs(4),
+          ["<C-b>"]     = cmp.mapping.scroll_docs(-4),
+          ["<C-f>"]     = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
-          ["<C-e>"]   = cmp.mapping.abort(),
-          ["<CR>"]    = cmp.mapping.confirm({ select = true }),  -- ⏎ to accept
+          ["<C-e>"]     = cmp.mapping.abort(),
+          ["<CR>"]      = cmp.mapping.confirm({ select = true }),  -- ⏎ to accept
 
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
@@ -293,9 +299,55 @@ return {
       --------------------------------------------------------------------------+
       -- Expose capabilities for lspconfig                                      |
       --------------------------------------------------------------------------+
+
+      local function get_pses_paths()
+        -- ❶ Try the official Mason API (works on every Mason v1.x and most v2.x nightlies)
+        if mason_ok and mr.is_installed("powershell-editor-services") then
+          local pkg = mr.get_package("powershell-editor-services")
+          if pkg.get_install_path then       -- Mason ≤ v1.10
+            return pkg:get_install_path()
+          end
+        end
+
+        -- ❷ Fallback: build the path ourselves
+        return vim.fs.joinpath(
+          vim.fn.stdpath("data"),            -- e.g. ~/.local/share/nvim
+          "mason",
+          "packages",
+          "powershell-editor-services"
+        )
+      end
+
+      local pses_root   = get_pses_paths()
+      local bundle_dir  = vim.fs.joinpath(pses_root, "PowerShellEditorServices")
+      local start_ps1   = vim.fs.joinpath(bundle_dir, "Start-EditorServices.ps1")
+
+      -- pick the shell that exists
+      local shell = vim.fn.executable("pwsh") == 1 and "pwsh" or "powershell"
+
+
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
       require('lspconfig')['powershell_es'].setup {
-        capabilities = capabilities
+        capabilities = capabilities,
+        -- cmd = {
+        --   shell,
+        --   "-NoLogo",
+        --   "-NoProfile",
+        --   "-Command",
+        --   -- The string is executed *inside* PowerShell, so we can stay POSIX-ish outside.
+        --   table.concat({
+        --     "&",
+        --     "'" .. start_ps1 .. "'",                   -- script
+        --     "-BundledModulesPath", "'" .. bundle_dir .. "'",
+        --     "-SessionDetailsPath",  "'$null'",
+        --     "-FeatureFlags",        "@()",
+        --     "-LogLevel",            "'Normal'",
+        --     "-HostName",            "'nvim'",
+        --     "-HostProfileId",       "'0'",
+        --     "-HostVersion",         "'1.0.0'",
+        --     "-Stdio"
+        --   }, " ")
+        -- }
       }
       require('lspconfig')['terraformls'].setup {
         capabilities = capabilities
