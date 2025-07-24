@@ -129,6 +129,13 @@ return {
     }
   },
   {
+    'MeanderingProgrammer/render-markdown.nvim',
+    opts = {
+      file_types = { "markdown", "Avante" },
+    },
+    ft = { "markdown", "Avante" },
+  },
+  {
     "echasnovski/mini.nvim",
     version = false,
     event   = { "BufReadPre", "BufNewFile" },
@@ -234,11 +241,11 @@ return {
         },
 
         mapping = cmp.mapping.preset.insert({
-          ["<C-b>"]   = cmp.mapping.scroll_docs(-4),
-          ["<C-f>"]   = cmp.mapping.scroll_docs(4),
+          ["<C-b>"]     = cmp.mapping.scroll_docs(-4),
+          ["<C-f>"]     = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
-          ["<C-e>"]   = cmp.mapping.abort(),
-          ["<CR>"]    = cmp.mapping.confirm({ select = true }),  -- ⏎ to accept
+          ["<C-e>"]     = cmp.mapping.abort(),
+          ["<CR>"]      = cmp.mapping.confirm({ select = true }),  -- ⏎ to accept
 
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
@@ -291,14 +298,18 @@ return {
       --------------------------------------------------------------------------+
       -- Expose capabilities for lspconfig                                      |
       --------------------------------------------------------------------------+
+
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
       require('lspconfig')['powershell_es'].setup {
-        capabilities = capabilities
+        capabilities = capabilities,
       }
       require('lspconfig')['terraformls'].setup {
         capabilities = capabilities
       }
       require('lspconfig')['rust_analyzer'].setup {
+        capabilities = capabilities
+      }
+      require('lspconfig')['gopls'].setup {
         capabilities = capabilities
       }
 
@@ -509,4 +520,12 @@ return {
       require("lualine").setup()
     end,
   },
+  {
+    "akinsho/bufferline.nvim",
+    version = "*",
+    dependencies = "nvim-tree/nvim-web-devicons",
+    config = function()
+      require("bufferline").setup{}
+    end,
+  }
 }
