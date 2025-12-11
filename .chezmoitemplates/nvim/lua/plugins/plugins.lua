@@ -271,22 +271,27 @@ return {
       })
 
       --------------------------------------------------------------------------+
-      -- Expose capabilities for lspconfig                                      |
+      -- Expose capabilities for LSP                                            |
       --------------------------------------------------------------------------+
 
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      require('lspconfig')['powershell_es'].setup {
+
+      -- Configure LSP servers using vim.lsp.config (nvim 0.11+)
+      vim.lsp.config('powershell_es', {
         capabilities = capabilities,
-      }
-      require('lspconfig')['terraformls'].setup {
-        capabilities = capabilities
-      }
-      require('lspconfig')['rust_analyzer'].setup {
-        capabilities = capabilities
-      }
-      require('lspconfig')['gopls'].setup {
-        capabilities = capabilities
-      }
+      })
+      vim.lsp.config('terraformls', {
+        capabilities = capabilities,
+      })
+      vim.lsp.config('rust_analyzer', {
+        capabilities = capabilities,
+      })
+      vim.lsp.config('gopls', {
+        capabilities = capabilities,
+      })
+
+      -- Enable the configured servers
+      vim.lsp.enable({'powershell_es', 'terraformls', 'rust_analyzer', 'gopls'})
 
     end,
   },
