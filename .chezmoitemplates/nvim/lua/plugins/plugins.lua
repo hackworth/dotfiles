@@ -104,31 +104,6 @@ return {
     },
   },
   {
-    "yetone/avante.nvim",
-    event = "VeryLazy",
-    version = false, -- Never set this value to "*"! Never!
-    opts = {
-      provider = "claude",
-      providers = {
-        claude = {
-          endpoint = "https://api.anthropic.com",
-          model = "claude-sonnet-4-20250514",
-          timeout = 30000, -- Timeout in milliseconds
-          extra_request_body = {
-            temperature = 0.75,
-            max_tokens = 20480,
-          },
-        },
-      },
-    },
-    dependencies = {
-      "nvim-treesitter/nvim-treesitter",
-      "stevearc/dressing.nvim",
-      "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-    }
-  },
-  {
     'MeanderingProgrammer/render-markdown.nvim',
     opts = {
       file_types = { "markdown", "Avante" },
@@ -296,22 +271,27 @@ return {
       })
 
       --------------------------------------------------------------------------+
-      -- Expose capabilities for lspconfig                                      |
+      -- Expose capabilities for LSP                                            |
       --------------------------------------------------------------------------+
 
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      require('lspconfig')['powershell_es'].setup {
+
+      -- Configure LSP servers using vim.lsp.config (nvim 0.11+)
+      vim.lsp.config('powershell_es', {
         capabilities = capabilities,
-      }
-      require('lspconfig')['terraformls'].setup {
-        capabilities = capabilities
-      }
-      require('lspconfig')['rust_analyzer'].setup {
-        capabilities = capabilities
-      }
-      require('lspconfig')['gopls'].setup {
-        capabilities = capabilities
-      }
+      })
+      vim.lsp.config('terraformls', {
+        capabilities = capabilities,
+      })
+      vim.lsp.config('rust_analyzer', {
+        capabilities = capabilities,
+      })
+      vim.lsp.config('gopls', {
+        capabilities = capabilities,
+      })
+
+      -- Enable the configured servers
+      vim.lsp.enable({'powershell_es', 'terraformls', 'rust_analyzer', 'gopls'})
 
     end,
   },
