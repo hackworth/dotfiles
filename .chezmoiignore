@@ -13,3 +13,7 @@ Documents/WindowsPowerShell
 {{ if ne .chezmoi.os "darwin" }}
 .Brewfile
 {{ end }}
+
+{{ if ne .chezmoi.os "darwin" }}
+.zprofile
+{{ end }}

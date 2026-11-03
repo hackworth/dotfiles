@@ -1,0 +1,29 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/bin/bash
+# Debian/Ubuntu packages. Runs before files so git/zsh exist for externals.
+set -euo pipefail
+
+sudo apt-get update
+sudo apt-get install -y zsh git curl tmux fzf fd-find ripgrep build-essential unzip
+
+mkdir -p "$HOME/.local/bin"
+# Debian ships fd as fdfind
+command -v fd >/dev/null || ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+
+command -v zoxide >/dev/null || curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+
+# Distro neovim is too old for this config (needs 0.11+)
+case "$(uname -m)" in aarch64|arm64) arch=arm64 ts_arch=arm64 ;; *) arch=x86_64 ts_arch=x64 ;; esac
+if ! nvim --headless -c 'if !has("nvim-0.11") | cquit | endif' -c qa 2>/dev/null; then
+  curl -fsSL "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-$arch.tar.gz" | sudo tar -C /opt -xz
+  sudo ln -sf "/opt/nvim-linux-$arch/bin/nvim" /usr/local/bin/nvim
+fi
+
+# tree-sitter CLI for nvim-treesitter's main branch
+command -v tree-sitter >/dev/null || {
+  curl -fsSL "https://github.com/tree-sitter/tree-sitter/releases/latest/download/tree-sitter-linux-$ts_arch.gz" | gunzip > "$HOME/.local/bin/tree-sitter"
+  chmod +x "$HOME/.local/bin/tree-sitter"
+}
+
+[ "$(getent passwd "$USER" | cut -d: -f7)" = "$(command -v zsh)" ] || sudo chsh -s "$(command -v zsh)" "$USER"
+{{ end -}}
