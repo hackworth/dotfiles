@@ -1,0 +1,5 @@
+{{ if eq .chezmoi.os "windows" -}}
+# Point nvim (and other XDG-aware tools) at ~/.config, shared with macOS/Linux
+[Environment]::SetEnvironmentVariable('XDG_CONFIG_HOME', "$HOME\.config", 'User')
+$env:XDG_CONFIG_HOME = "$HOME\.config"
+{{ end -}}

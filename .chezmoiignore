@@ -1,13 +1,11 @@
 README.md
 
 {{ if eq .chezmoi.os "windows" }}
-.config/nvim
 .oh-my-zsh
 .tmux
 .tmux.conf
 .zshrc
 {{ else }}
-AppData
 Documents/PowerShell
 Documents/WindowsPowerShell
 {{ end }}
