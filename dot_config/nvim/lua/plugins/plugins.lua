@@ -4,6 +4,21 @@ return {
     lazy = false, -- make sure we load this during startup if it is your main colorscheme
     priority = 1000, -- make sure to load this before all the other start plugins
     config = function()
+      require("catppuccin").setup({
+        -- auto-detection scans every plugin on each launch; list them explicitly instead
+        auto_integrations = false,
+        integrations = {
+          cmp = true,
+          gitsigns = true,
+          hop = true,
+          lsp_trouble = true,
+          mason = true,
+          mini = { enabled = true },
+          nvimtree = true,
+          render_markdown = true,
+          telescope = true,
+        },
+      })
       -- load the colorscheme here
       vim.cmd([[colorscheme catppuccin-frappe]])
     end,
@@ -172,6 +187,7 @@ return {
   },
   {
     "williamboman/mason-lspconfig.nvim",
+    lazy = true, -- loaded by nvim-lspconfig on first buffer
     dependencies = { "williamboman/mason.nvim" },
     opts = {
       ensure_installed = {
@@ -301,6 +317,7 @@ return {
   },
   {
     "L3MON4D3/LuaSnip",
+    lazy = true, -- loaded by nvim-cmp on InsertEnter
     version = "v2.*",
     -- jsregexp is optional; skip the build on Windows where make is usually missing
     build = vim.fn.has("win32") == 0 and "make install_jsregexp" or nil,
@@ -508,6 +525,7 @@ return {
   {
     "akinsho/bufferline.nvim",
     version = "*",
+    event = "VeryLazy",
     dependencies = "nvim-tree/nvim-web-devicons",
     config = function()
       require("bufferline").setup{}
