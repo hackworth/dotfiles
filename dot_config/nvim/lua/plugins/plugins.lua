@@ -31,14 +31,28 @@ return {
       }
     end,
     keys = {
-      { "<leader>ws", "<cmd>StripWhitespace<CR>",  desc = "Strip trailing whitespace" },
-      { "<leader>wt", "<cmd>ToggleWhitespace<CR>", desc = "Toggle whitespace highlight" },
+      { "<leader>sw", "<cmd>StripWhitespace<CR>",  desc = "Strip trailing whitespace" },
+      { "<leader>tw", "<cmd>ToggleWhitespace<CR>", desc = "Toggle whitespace highlight" },
     },
   },
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    lazy = false,                             -- main branch does not support lazy-loading
     build = ":TSUpdate",                      -- keep parsers fresh
-    event = { "BufReadPre", "BufNewFile" },
+    config = function()
+      require("nvim-treesitter").install({
+        "bash", "go", "hcl", "json", "lua", "markdown", "markdown_inline",
+        "powershell", "python", "rust", "terraform", "toml", "vim", "vimdoc", "yaml",
+      })
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          if pcall(vim.treesitter.start, args.buf) then
+            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+          end
+        end,
+      })
+    end,
   },
   {
     "tpope/vim-fugitive",
@@ -106,9 +120,9 @@ return {
   {
     'MeanderingProgrammer/render-markdown.nvim',
     opts = {
-      file_types = { "markdown", "Avante" },
+      file_types = { "markdown" },
     },
-    ft = { "markdown", "Avante" },
+    ft = { "markdown" },
   },
   {
     "echasnovski/mini.nvim",
@@ -117,7 +131,6 @@ return {
 
     config = function()
       require("mini.align").setup()
-      require("mini.surround").setup()
       require("mini.pairs").setup()
     end,
   },
@@ -169,6 +182,8 @@ return {
         "terraformls",
       },
       automatic_installation = true,
+      -- mason's stylua is a formatter here, not an LSP (it rejects --lsp)
+      automatic_enable = { exclude = { "stylua" } },
     },
   },
   {
@@ -178,6 +193,19 @@ return {
       "williamboman/mason-lspconfig.nvim",
       "hrsh7th/cmp-nvim-lsp",
     },
+
+    config = function()
+      -- Configure LSP servers using vim.lsp.config (nvim 0.11+)
+      vim.lsp.config("*", {
+        capabilities = require("cmp_nvim_lsp").default_capabilities(),
+      })
+      vim.lsp.config("lua_ls", {
+        settings = { Lua = { diagnostics = { globals = { "vim" } } } },
+      })
+
+      -- Enable the configured servers
+      vim.lsp.enable({ "lua_ls", "powershell_es", "terraformls", "rust_analyzer", "gopls" })
+    end,
   },
   {
     "hrsh7th/nvim-cmp",
@@ -269,36 +297,13 @@ return {
         ),
         matching = { disallow_symbol_nonprefix_matching = false },
       })
-
-      --------------------------------------------------------------------------+
-      -- Expose capabilities for LSP                                            |
-      --------------------------------------------------------------------------+
-
-      local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-      -- Configure LSP servers using vim.lsp.config (nvim 0.11+)
-      vim.lsp.config('powershell_es', {
-        capabilities = capabilities,
-      })
-      vim.lsp.config('terraformls', {
-        capabilities = capabilities,
-      })
-      vim.lsp.config('rust_analyzer', {
-        capabilities = capabilities,
-      })
-      vim.lsp.config('gopls', {
-        capabilities = capabilities,
-      })
-
-      -- Enable the configured servers
-      vim.lsp.enable({'powershell_es', 'terraformls', 'rust_analyzer', 'gopls'})
-
     end,
   },
   {
     "L3MON4D3/LuaSnip",
     version = "v2.*",
-    build = "make install_jsregexp",
+    -- jsregexp is optional; skip the build on Windows where make is usually missing
+    build = vim.fn.has("win32") == 0 and "make install_jsregexp" or nil,
     dependencies = { "rafamadriz/friendly-snippets" },
   },
   {
@@ -449,13 +454,14 @@ return {
       desc = "Diagnostics (doc)" },
 
       -- LSP references/defs/… for word under cursor
-      { "gr",         "<cmd>Trouble lsp_references<CR>",
-      desc = "LSP references" },
+      -- (under <leader>x to keep built-in gr*/gi/gt mappings free)
       { "gd",         "<cmd>Trouble lsp_definitions<CR>",
       desc = "LSP definitions" },
-      { "gi",         "<cmd>Trouble lsp_implementations<CR>",
+      { "<leader>xr", "<cmd>Trouble lsp_references<CR>",
+      desc = "LSP references" },
+      { "<leader>xi", "<cmd>Trouble lsp_implementations<CR>",
       desc = "LSP implementations" },
-      { "gt",         "<cmd>Trouble lsp_type_definitions<CR>",
+      { "<leader>xt", "<cmd>Trouble lsp_type_definitions<CR>",
       desc = "LSP type definitions" },
     },
 

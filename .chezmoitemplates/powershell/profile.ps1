@@ -4,9 +4,6 @@ oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH/spaceship.omp.json" | Invok
 # Importing Terminal-Icons Module
 Import-Module Terminal-Icons
 
-# Importing Z Module
-Import-Module Z
-
 # Importing Fuzzy finder tool
 Import-Module PSFzf
 
