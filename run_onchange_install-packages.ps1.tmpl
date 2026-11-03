@@ -2,7 +2,13 @@
 Install-Module Terminal-Icons -Scope CurrentUser -Force -SkipPublisherCheck
 Install-Module PSFzf -Scope CurrentUser -Force -SkipPublisherCheck
 Install-Module PSReadLine -Scope CurrentUser -Force -SkipPublisherCheck
-Install-Module Find-String -Scope CurrentUser -Force -SkipPublisherCheck
 scoop install neovim fzf curl sudo jq 7zip coreutils grep sed less fd zoxide tree-sitter
+# Windows Server doesn't ship winget, and installing it needs admin
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    Start-Process pwsh -Verb RunAs -Wait -ArgumentList '-NoProfile', '-Command', 'Install-Script -Name winget-install -Repository PSGallery -Force; winget-install'
+    $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+    # Fail so chezmoi retries this script on the next apply
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { throw 'winget install failed' }
+}
 winget install JanDeDobbeleer.OhMyPosh -s winget
 {{ end -}}

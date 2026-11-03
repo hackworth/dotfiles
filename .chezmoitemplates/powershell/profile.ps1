@@ -15,7 +15,6 @@ Set-PSReadlineKeyHandler -Key Tab -Function MenuComplete
 # Setting Alias's
 Set-Alias vim nvim
 Set-Alias g git
-Set-Alias grep Find-String
 
 $env:EDITOR = "nvim"
 Invoke-Expression (& { (zoxide init powershell | Out-String) })

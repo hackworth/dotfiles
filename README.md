@@ -31,7 +31,8 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; irm get.scoop.sh | i
 
 Installs Scoop packages, PowerShell modules and oh-my-posh, and sets
 `XDG_CONFIG_HOME` so nvim shares `~/.config/nvim`. Open a new PowerShell 7 (`pwsh`)
-window when it finishes.
+window when it finishes. On Windows Server, which doesn't ship winget, expect a UAC
+prompt to install it.
 
 ## After setup
 
