@@ -31,8 +31,8 @@ return {
       }
     end,
     keys = {
-      { "<leader>sw", "<cmd>StripWhitespace<CR>",  desc = "Strip trailing whitespace" },
-      { "<leader>tw", "<cmd>ToggleWhitespace<CR>", desc = "Toggle whitespace highlight" },
+      { "<leader>ws", "<cmd>StripWhitespace<CR>",  desc = "Strip trailing whitespace" },
+      { "<leader>wt", "<cmd>ToggleWhitespace<CR>", desc = "Toggle whitespace highlight" },
     },
   },
   {
@@ -454,14 +454,13 @@ return {
       desc = "Diagnostics (doc)" },
 
       -- LSP references/defs/… for word under cursor
-      -- (under <leader>x to keep built-in gr*/gi/gt mappings free)
+      { "gr",         "<cmd>Trouble lsp_references<CR>",
+      desc = "LSP references" },
       { "gd",         "<cmd>Trouble lsp_definitions<CR>",
       desc = "LSP definitions" },
-      { "<leader>xr", "<cmd>Trouble lsp_references<CR>",
-      desc = "LSP references" },
-      { "<leader>xi", "<cmd>Trouble lsp_implementations<CR>",
+      { "gi",         "<cmd>Trouble lsp_implementations<CR>",
       desc = "LSP implementations" },
-      { "<leader>xt", "<cmd>Trouble lsp_type_definitions<CR>",
+      { "gt",         "<cmd>Trouble lsp_type_definitions<CR>",
       desc = "LSP type definitions" },
     },
 
