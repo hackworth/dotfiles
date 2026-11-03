@@ -1,0 +1,33 @@
+Host coruscant
+  HostName coruscant
+  User hack
+
+Host ceres
+  HostName ceres
+  User hack
+
+Host raspberrypi.local
+  HostName raspberrypi.local
+  User pi
+
+Host idrin
+  HostName salem.cyphen.net
+  User hack
+
+Host mustafar
+  User administrator
+
+Host ezbeq
+  User orangepi
+
+Host lpetststl01
+  User jhackworth
+  ForwardAgent yes
+
+Host *
+  AddKeysToAgent yes
+{{- if eq .chezmoi.os "darwin" }}
+  IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+{{- else if eq .chezmoi.os "linux" }}
+  IdentityAgent ~/.1password/agent.sock
+{{- end }}
