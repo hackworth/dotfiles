@@ -1,0 +1,280 @@
+#!/usr/bin/env bash
+# Update third-party KOReader plugins and Tailscale on the Kindles over SSH.
+#
+# BookOrbit is deliberately not listed: it comes from the BookOrbit server, and
+# the similarly named GitHub repos are different projects.
+#
+# Each replaced plugin is kept in koreader/plugin-backups/ (latest one per plugin).
+# To roll back on a Kindle:
+#   cd /mnt/us/koreader && mv plugins/NAME.koplugin /tmp/ && mv plugin-backups/NAME-VERSION plugins/NAME.koplugin
+set -uo pipefail
+
+ALL_HOSTS=(kindle-new kindle-old)
+
+# plugin folder | GitHub repo | release asset pattern
+PLUGINS=(
+  'bookshelf|AndyHazz/bookshelf.koplugin|^bookshelf\.koplugin.*\.zip$'
+  'bookends|AndyHazz/bookends.koplugin|^bookends\.koplugin.*\.zip$'
+  'library-sync|komadorirobin/library-sync.koplugin|^(library-sync|grimmory-sync)\.koplugin\.zip$'
+  'AnnotationSync|dani84bs/AnnotationSync.koplugin|^AnnotationSync\.koplugin.*\.zip$'
+)
+
+K=/mnt/us/koreader
+TS_DAEMON_DIR=/var/local/tailscale
+TS_CLI_DIR=/mnt/us/tailscale
+TS_MIN_FREE_KB=60000
+
+usage() {
+  cat <<'EOF'
+Usage: kindle-update [options]
+
+Shows available updates for each reachable Kindle, then asks before installing.
+KOReader must be open on an awake Kindle for it to be reachable. Restart KOReader
+afterwards to load updated plugins.
+
+  --check        Show what's available and stop
+  -y, --yes      Install without asking
+  --host NAME    Only this Kindle (repeatable): kindle-new, kindle-old
+  --only NAME    Only this item (repeatable): bookshelf, bookends, library-sync,
+                 AnnotationSync, tailscale
+  --force        Reinstall even if up to date (requires --only)
+  -h, --help     Show this help
+EOF
+}
+
+die() { echo "kindle-update: $*" >&2; exit 1; }
+remote() { ssh -T -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 "$@"; }
+strip_v() { echo "${1#v}"; }
+major() { local v; v=$(strip_v "$1"); echo "${v%%.*}"; }
+
+# True if $1 is a newer version than $2.
+newer() {
+  local a b
+  a=$(strip_v "$1"); b=$(strip_v "$2")
+  [ "$a" != "$b" ] && [ "$(printf '%s\n%s\n' "$a" "$b" | sort -V | tail -n 1)" = "$a" ]
+}
+
+wanted() {
+  [ "${#ONLY[@]}" -eq 0 ] && return 0
+  local o
+  for o in "${ONLY[@]}"; do [ "$o" = "$1" ] && return 0; done
+  return 1
+}
+
+HOSTS=(); ONLY=(); CHECK=0; YES=0; FORCE=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check) CHECK=1 ;;
+    -y|--yes) YES=1 ;;
+    --force) FORCE=1 ;;
+    --host) [ $# -ge 2 ] || die "--host needs a name"; HOSTS+=("$2"); shift ;;
+    --only) [ $# -ge 2 ] || die "--only needs a name"; ONLY+=("$2"); shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; die "unknown option: $1" ;;
+  esac
+  shift
+done
+[ "${#HOSTS[@]}" -gt 0 ] || HOSTS=("${ALL_HOSTS[@]}")
+[ "$FORCE" -eq 0 ] || [ "${#ONLY[@]}" -gt 0 ] || die "--force requires --only"
+for tool in curl jq unzip shasum tar; do command -v "$tool" >/dev/null || die "missing $tool"; done
+
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/kindle-update.XXXXXX") || die "could not create a temp folder"
+trap 'rm -rf "$TMP"' EXIT
+
+# --- What's available upstream ------------------------------------------------
+
+LATEST="$TMP/latest"; : > "$LATEST"   # name|version|url|sha256
+for entry in "${PLUGINS[@]}"; do
+  IFS='|' read -r name repo pattern <<< "$entry"
+  wanted "$name" || continue
+  if ! json=$(curl -fsSL --max-time 20 "https://api.github.com/repos/$repo/releases/latest"); then
+    echo "warning: could not check $repo (GitHub rate limit or offline)" >&2
+    continue
+  fi
+  line=$(jq -r --arg p "$pattern" '
+    . as $r | [.assets[] | select(.name | test($p))][0] |
+    "\($r.tag_name)|\(.browser_download_url // "")|\((.digest // "") | sub("^sha256:"; ""))"' <<< "$json")
+  [ -n "${line#*|}" ] && [ "$(cut -d'|' -f2 <<< "$line")" != "" ] \
+    || { echo "warning: no matching release file for $repo" >&2; continue; }
+  echo "$name|$line" >> "$LATEST"
+done
+if wanted tailscale; then
+  if json=$(curl -fsSL --max-time 20 'https://pkgs.tailscale.com/stable/?mode=json'); then
+    tarball=$(jq -r '.Tarballs.arm' <<< "$json")
+    echo "tailscale|$(jq -r '.Version' <<< "$json")|https://pkgs.tailscale.com/stable/$tarball|" >> "$LATEST"
+  else
+    echo "warning: could not check Tailscale" >&2
+  fi
+fi
+[ -s "$LATEST" ] || die "nothing to check"
+
+# --- What's installed on each Kindle, and the resulting plan ------------------
+
+PLAN="$TMP/plan"; : > "$PLAN"   # host|name|from|to
+REACHABLE=()
+for host in "${HOSTS[@]}"; do
+  dirs=""
+  for entry in "${PLUGINS[@]}"; do dirs="$dirs ${entry%%|*}"; done
+  if ! state=$(remote "$host" "cd $K || exit 1
+    for d in $dirs; do
+      printf '%s\t' \"\$d\"
+      grep -m1 -E '^[[:space:]]*version[[:space:]]*=' plugins/\$d.koplugin/_meta.lua 2>/dev/null || echo
+    done
+    printf 'tailscale\t'; $TS_CLI_DIR/tailscale version 2>/dev/null | head -n 1" 2>/dev/null); then
+    echo "$host: not reachable, skipping (is it awake, on Wi-Fi, with KOReader open?)"
+    continue
+  fi
+  REACHABLE+=("$host")
+  echo "$host:"
+  while IFS='|' read -r name to _url _sha; do
+    raw=$(awk -F'\t' -v n="$name" '$1 == n { print $2 }' <<< "$state")
+    from=$(sed -E "s/.*=[[:space:]]*[\"']?([^\"',[:space:]]+).*/\1/" <<< "$raw")
+    if [ -z "$from" ]; then
+      printf '  %-16s not installed, skipping\n' "$name"
+    elif [ "$FORCE" -eq 1 ] || newer "$to" "$from"; then
+      note=""
+      [ "$(major "$to")" != "$(major "$from")" ] && note="  (major version)"
+      printf '  %-16s %s -> %s%s\n' "$name" "$from" "$to" "$note"
+      echo "$host|$name|$from|$to" >> "$PLAN"
+    elif newer "$from" "$to"; then
+      printf '  %-16s %s (ahead of latest release %s)\n' "$name" "$from" "$to"
+    else
+      printf '  %-16s %s (up to date)\n' "$name" "$from"
+    fi
+  done < "$LATEST"
+done
+
+[ -s "$PLAN" ] || { echo "Nothing to update."; exit 0; }
+[ "$CHECK" -eq 0 ] || exit 0
+if [ "$YES" -eq 0 ]; then
+  [ -t 0 ] || die "not a terminal; use --yes to install without asking"
+  printf 'Install these updates? [y/N] '
+  read -r answer
+  case "$answer" in y|Y|yes) ;; *) echo "Cancelled."; exit 0 ;; esac
+fi
+
+# --- Download and verify (once per item) --------------------------------------
+
+# Prints the plugin's root folder inside the extracted zip.
+prepare_plugin() {
+  local name=$1 version=$2 url=$3 sha=$4 dir="$TMP/dl/$1" root meta
+  mkdir -p "$dir" || return 1
+  curl -fsSL --max-time 300 -o "$dir/a.zip" "$url" || { echo "$name: download failed" >&2; return 1; }
+  if [ -n "$sha" ] && [ "$(shasum -a 256 "$dir/a.zip" | cut -d' ' -f1)" != "$sha" ]; then
+    echo "$name: checksum mismatch" >&2; return 1
+  fi
+  if unzip -Z1 "$dir/a.zip" | grep -qE '(^/|(^|/)\.\.(/|$))'; then
+    echo "$name: unsafe paths in zip" >&2; return 1
+  fi
+  unzip -qo "$dir/a.zip" -d "$dir/x" || return 1
+  root=$(find "$dir/x" -mindepth 2 -maxdepth 2 -type f -name _meta.lua -exec dirname {} \;)
+  [ -n "$root" ] && [ "$(wc -l <<< "$root")" -eq 1 ] && [ -f "$root/main.lua" ] \
+    || { echo "$name: unexpected zip layout" >&2; return 1; }
+  meta=$(grep -m1 -E '^[[:space:]]*version[[:space:]]*=' "$root/_meta.lua" | sed -E "s/.*=[[:space:]]*[\"']?([^\"',[:space:]]+).*/\1/")
+  if [ "$(strip_v "$meta")" != "$(strip_v "$version")" ]; then
+    echo "$name: release is $version but its files say $meta" >&2; return 1
+  fi
+  if command -v luajit >/dev/null; then
+    local bad
+    bad=$(find "$root" -name '*.lua' -exec sh -c 'luajit -bl "$1" >/dev/null 2>&1 || echo "$1"' _ {} \; | head -n 1)
+    [ -z "$bad" ] || { echo "$name: syntax error in ${bad##*/}" >&2; return 1; }
+  fi
+  find "$root" \( -name '._*' -o -name '.DS_Store' \) -delete
+  (cd "$root" && find . -type f -print0 | xargs -0 shasum -a 256) > "$dir/manifest" || return 1
+  echo "$root"
+}
+
+prepare_tailscale() {
+  local url=$1 dir="$TMP/dl/tailscale" want
+  mkdir -p "$dir/x" || return 1
+  curl -fsSL --max-time 300 -o "$dir/a.tgz" "$url" || { echo "tailscale: download failed" >&2; return 1; }
+  want=$(curl -fsSL --max-time 20 "$url.sha256" | cut -d' ' -f1)
+  [ -n "$want" ] && [ "$(shasum -a 256 "$dir/a.tgz" | cut -d' ' -f1)" = "$want" ] \
+    || { echo "tailscale: checksum mismatch" >&2; return 1; }
+  tar -xzf "$dir/a.tgz" -C "$dir/x" --strip-components=1 || return 1
+  [ -f "$dir/x/tailscaled" ] && [ -f "$dir/x/tailscale" ] || { echo "tailscale: unexpected archive layout" >&2; return 1; }
+  (cd "$dir/x" && shasum -a 256 tailscaled tailscale) > "$dir/manifest"
+  echo "$dir/x"
+}
+
+# --- Install -------------------------------------------------------------------
+
+install_plugin() {
+  local host=$1 name=$2 from=$3 root=$4 manifest=$5 top
+  top=$(basename "$root")
+  remote "$host" "rm -rf $K/.update-new && mkdir -p $K/.update-new" || return 1
+  (cd "$(dirname "$root")" && COPYFILE_DISABLE=1 tar --no-xattrs -cf - "$top") \
+    | remote "$host" "tar -xf - -C $K/.update-new" || return 1
+  remote "$host" "cat > /tmp/kindle-update.sha" < "$manifest" || return 1
+  remote "$host" "set -e
+    cd $K/.update-new/$top
+    sha256sum -c /tmp/kindle-update.sha >/dev/null 2>&1 || { echo 'files failed verification; current version untouched'; rm -rf $K/.update-new; exit 1; }
+    cd $K
+    mkdir -p plugin-backups
+    rm -rf plugin-backups/$name-*
+    mv plugins/$name.koplugin plugin-backups/$name-$from
+    mv .update-new/$top plugins/$name.koplugin || { mv plugin-backups/$name-$from plugins/$name.koplugin; echo 'swap failed; restored previous version'; exit 1; }
+    rm -rf .update-new /tmp/kindle-update.sha"
+}
+
+install_tailscale() {
+  local host=$1 to=$2 x=$3 manifest=$4 free i now
+  free=$(remote "$host" "df -k $TS_DAEMON_DIR | tail -n 1" | awk '{ print $(NF-2) }')
+  [ "${free:-0}" -ge "$TS_MIN_FREE_KB" ] || { echo "not enough space in $TS_DAEMON_DIR (${free:-?} KB free)"; return 1; }
+  remote "$host" "cat > $TS_DAEMON_DIR/tailscaled.new" < "$x/tailscaled" || return 1
+  remote "$host" "cat > $TS_CLI_DIR/tailscale.new" < "$x/tailscale" || return 1
+  remote "$host" "cat > /tmp/kindle-update.sha" < "$manifest" || return 1
+  remote "$host" "set -e
+    cd /tmp
+    want() { grep \" \$1\$\" /tmp/kindle-update.sha | cut -d' ' -f1; }
+    have() { sha256sum \"\$1\" | cut -d' ' -f1; }
+    if [ \"\$(have $TS_DAEMON_DIR/tailscaled.new)\" != \"\$(want tailscaled)\" ] || [ \"\$(have $TS_CLI_DIR/tailscale.new)\" != \"\$(want tailscale)\" ]; then
+      rm -f $TS_DAEMON_DIR/tailscaled.new $TS_CLI_DIR/tailscale.new; echo 'files failed verification; current version untouched'; exit 1
+    fi
+    chmod 755 $TS_DAEMON_DIR/tailscaled.new $TS_CLI_DIR/tailscale.new
+    $TS_DAEMON_DIR/tailscaled.new --version >/dev/null || { rm -f $TS_DAEMON_DIR/tailscaled.new $TS_CLI_DIR/tailscale.new; echo 'new version will not run; current version untouched'; exit 1; }
+    cp -f $TS_DAEMON_DIR/tailscaled $TS_DAEMON_DIR/tailscaled.prev
+    mv -f $TS_DAEMON_DIR/tailscaled.new $TS_DAEMON_DIR/tailscaled
+    mv -f $TS_CLI_DIR/tailscale.new $TS_CLI_DIR/tailscale
+    rm -f /tmp/kindle-update.sha" || return 1
+  # This restart drops the connection if we're using Tailscale, so it runs detached.
+  remote "$host" "setsid nohup sh -c 'sleep 2; p=\$(pidof tailscaled); [ -n \"\$p\" ] && kill \$p; n=0; while pidof tailscaled >/dev/null && [ \$n -lt 15 ]; do sleep 1; n=\$((n+1)); done; sh $TS_DAEMON_DIR/start.sh' >/dev/null 2>&1 </dev/null &" 2>/dev/null
+  sleep 8
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    now=$(remote "$host" "$TS_CLI_DIR/tailscale --socket=$TS_DAEMON_DIR/tailscaled.sock version --daemon 2>/dev/null" 2>/dev/null | sed -n 's/^Daemon: \([0-9.]*\).*/\1/p')
+    [ "$now" = "$to" ] && return 0
+    sleep 6
+  done
+  echo "could not confirm it came back; the previous version is $TS_DAEMON_DIR/tailscaled.prev"
+  return 1
+}
+
+FAILED=0; UPDATED_PLUGINS=""
+while IFS='|' read -r host name from to <&3; do
+  IFS='|' read -r _ _ url sha <<< "$(grep "^$name|" "$LATEST")"
+  prepared="$TMP/dl/$name.root"
+  if [ ! -f "$prepared" ]; then
+    mkdir -p "$TMP/dl"
+    if [ "$name" = tailscale ]; then
+      prepare_tailscale "$url" > "$prepared" || { rm -f "$prepared"; echo "$host $name: FAILED"; FAILED=1; continue; }
+    else
+      prepare_plugin "$name" "$to" "$url" "$sha" > "$prepared" || { rm -f "$prepared"; echo "$host $name: FAILED"; FAILED=1; continue; }
+    fi
+  fi
+  root=$(cat "$prepared")
+  printf '%s %s: installing %s ... ' "$host" "$name" "$to"
+  if [ "$name" = tailscale ]; then
+    install_tailscale "$host" "$to" "$root" "$TMP/dl/tailscale/manifest"
+  else
+    install_plugin "$host" "$name" "$from" "$root" "$TMP/dl/$name/manifest"
+  fi
+  if [ $? -eq 0 ]; then
+    echo "done"
+    [ "$name" = tailscale ] || case " $UPDATED_PLUGINS " in *" $host "*) ;; *) UPDATED_PLUGINS="$UPDATED_PLUGINS $host" ;; esac
+  else
+    echo "FAILED"; FAILED=1
+  fi
+done 3< "$PLAN"
+
+[ -z "$UPDATED_PLUGINS" ] || echo "Restart KOReader to load the updates on:$UPDATED_PLUGINS"
+exit "$FAILED"

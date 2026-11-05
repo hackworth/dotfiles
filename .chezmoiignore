@@ -1,6 +1,7 @@
 README.md
 
 {{ if eq .chezmoi.os "windows" }}
+.local/bin/kindle-update
 .oh-my-zsh
 .tmux
 .tmux.conf
