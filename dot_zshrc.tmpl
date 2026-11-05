@@ -4,7 +4,7 @@ export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="spaceship-prompt/spaceship"
 
 # See $ZSH/plugins/ for available plugins; too many slow down startup.
-plugins=(git fzf zoxide{{ if eq .chezmoi.os "darwin" }} dash{{ end }})
+plugins=(git fzf zoxide zsh-autosuggestions{{ if eq .chezmoi.os "darwin" }} dash{{ end }})
 
 source $ZSH/oh-my-zsh.sh
 
