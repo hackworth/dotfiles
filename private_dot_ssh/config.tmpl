@@ -24,6 +24,16 @@ Host lpetststl01
   User jhackworth
   ForwardAgent yes
 
+Host kindle-new
+  HostName kindle-new.tail9fa2f.ts.net
+  Port 2222
+  User root
+
+Host kindle-old
+  HostName kindle-old.tail9fa2f.ts.net
+  Port 2222
+  User root
+
 Host *
   AddKeysToAgent yes
 {{- if eq .chezmoi.os "darwin" }}
