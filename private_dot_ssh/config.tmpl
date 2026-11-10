@@ -38,6 +38,11 @@ Host *
   ForwardAgent yes
 {{- if eq .chezmoi.os "darwin" }}
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-{{- else if eq .chezmoi.os "linux" }}
+{{- end }}
+{{- if eq .chezmoi.os "linux" }}
+
+# Use the local 1Password agent only when it's running and this isn't an SSH
+# session; otherwise fall back to SSH_AUTH_SOCK (e.g. a forwarded agent).
+Match exec "test -S ~/.1password/agent.sock" !exec "printenv SSH_CONNECTION"
   IdentityAgent ~/.1password/agent.sock
 {{- end }}
