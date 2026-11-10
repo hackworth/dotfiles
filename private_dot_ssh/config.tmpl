@@ -22,7 +22,6 @@ Host ezbeq
 
 Host lpetststl01
   User jhackworth
-  ForwardAgent yes
 
 Host kindle-new
   HostName kindle-new.tail9fa2f.ts.net
@@ -36,6 +35,7 @@ Host kindle-old
 
 Host *
   AddKeysToAgent yes
+  ForwardAgent yes
 {{- if eq .chezmoi.os "darwin" }}
   IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 {{- else if eq .chezmoi.os "linux" }}
